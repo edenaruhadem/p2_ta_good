@@ -1,15 +1,3 @@
-
-Conversación abierta. 1 mensaje sin leer.
-
-Ir al contenido
-Uso de Gmail con lectores de pantalla
-1 de 2.615
-(sin asunto)
-Diego Ríos Castro <rioscastrodiego@gmail.com>
-	
-15:00 (hace 0 minutos)
-	
-para mí
 import java.io.IOException;
 import java.util.StringTokenizer;
 
