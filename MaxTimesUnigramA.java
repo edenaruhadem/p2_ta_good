@@ -32,8 +32,11 @@ public class MaxTimesUnigramA
         String times = partsLine[2];
         Integer y = Integer.parseInt(stryear);
         if(y>=1800)
-        {   
-        year.set(stryear);
+        {
+        Integer lastnumy = Integer.parseInt(stryear.substring(stryear.length()-1));
+        Integer decade = y + (10-lastnumy);
+        String strdecade = Integer.toString(decade);   
+        year.set(strdecade);
         unitimes.set(unigram+"/"+times);
         context.write(year, unitimes);       
         }
@@ -56,7 +59,7 @@ public class MaxTimesUnigramA
                 String uni = parts[0];
         String t = parts[1];       
                 Integer time = Integer.parseInt(t);
-        System.out.println(uni+"/"+t);
+        //System.out.println(uni+"/"+t);
                 map.put(uni, time);               
             }
             Map.Entry<String,Integer> maxEntry =  getMaxEntry(map);
@@ -67,19 +70,22 @@ public class MaxTimesUnigramA
         }
     }
 
-
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "maxunigramA");
         job.setJarByClass(MaxTimesUnigramA.class);
+
         job.setMapperClass(MaxTimesUnigramAMapper.class);
-        //job.setCombinerClass(IntSumReducer.class);
+        //job.setCombinerClass(MaxTimesUnigramACombiner.class);
         job.setReducerClass(MaxTimesUnigramAReducer.class);
+
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
+
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+       
+    System.exit(job.waitForCompletion(true) ? 0 : 1);
       }
   
 
@@ -96,6 +102,15 @@ public class MaxTimesUnigramA
     }
 
 }
+
+   
+   
+   
+
+	
+	
+	
+
 
    
    
