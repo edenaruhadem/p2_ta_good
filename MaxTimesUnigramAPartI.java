@@ -80,7 +80,7 @@ public class MaxTimesUnigramAPartI
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "maxunigramA");
+        Job job = Job.getInstance(conf, "maxunigramAPartI");
         job.setJarByClass(MaxTimesUnigramAPartI.class);
 
         job.setMapperClass(MaxTimesUnigramAMapper.class);
@@ -91,9 +91,8 @@ public class MaxTimesUnigramAPartI
         job.setOutputValueClass(Text.class);
 
         FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-       
-    System.exit(job.waitForCompletion(true) ? 0 : 1);
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));               
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
       }
   
 
