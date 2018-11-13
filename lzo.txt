@@ -1,0 +1,38 @@
+https://knpcode.com/hadoop/hadoop-io/how-to-use-lzo-compression-in-hadoop/
+
+
+sudo apt-get install build-essential liblzo2-dev maven
+git clone https://github.com/twitter/hadoop-lzo.git
+cd hadoop-lzo/
+mvn clean package
+sudo cp /home/ubuntu/resources/installer/hadoop-lzo/target/hadoop-lzo-0.4.21-SNAPSHOT.jar /home/ubuntu/hadoop/share/hadoop/mapreduce/lib
+
+sudo cp /home/tfmmanuelvazquez/resources/installer/hadoop-lzo/target/hadoop-lzo-0.4.21-SNAPSHOT.jar /home/tfmmanuelvazquez/hadoop/share/hadoop/mapreduce/lib
+
+
+hadoop-env.sh
+
+export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/home/knpcode/hadoop-lzo/target/hadoop-lzo-0.4.21-SNAPSHOT.jar
+export JAVA_LIBRARY_PATH=/home/knpcode/hadoop-lzo/target/native/Linux-amd64-64:$HADOOP_INSTALLATION_DIR/lib/native
+
+
+
+export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:/home/ubuntu/resources/installer/hadoop-lzo/target/hadoop-lzo-0.4.21-SNAPSHOT.jar
+export JAVA_LIBRARY_PATH=/home/ubuntu/resources/installer/hadoop-lzo/target/native/Linux-amd64-64:$HADOOP_INSTALLATION_DIR/lib/native
+
+
+core-site.xml
+
+add
+
+<property>
+  <name>io.compression.codecs</name>
+  <value>org.apache.hadoop.io.compress.GzipCodec, org.apache.hadoop.io.compress.DefaultCodec, 
+    org.apache.hadoop.io.compress.BZip2Codec, com.hadoop.compression.lzo.LzoCodec, 
+    com.hadoop.compression.lzo.LzopCodec
+  </value>
+</property>
+<property>
+  <name>io.compression.codec.lzo.class</name>
+     <value>com.hadoop.compression.lzo.LzoCodec</value>
+</property>
