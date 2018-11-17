@@ -4,8 +4,10 @@ import java.util.StringTokenizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.*;
 
 import java.util.Collections;
 import org.apache.hadoop.conf.Configuration;
@@ -27,6 +29,7 @@ public class MaxTimesUnigramPartII
         private Text unitimes = new Text();
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException
         {
+            Pattern pat = Pattern.compile("^[aAáÁ].*");
             //System.out.println(value.toString());                  
             String [] partsLine = value.toString().trim().split("\t");
             String unigram = partsLine[0];      
@@ -37,15 +40,21 @@ public class MaxTimesUnigramPartII
             {
                 Integer lastnumy = Integer.parseInt(stryear.substring(stryear.length()-1));                
                 Integer decade = y - lastnumy;
-                String strdecade = Integer.toString(decade);  
-                year.set(strdecade);
-                unitimes.set(unigram+"@"+times);
-                //System.out.println(unigram+"/"+times);
-                context.write(new Text(year), new Text(unitimes));      
+                String strdecade = Integer.toString(decade);
+                Matcher mat = pat.matcher(unigram);
+                if(mat.matches())
+                {
+                    //unitimes.set(unigram+"@"+times);           
+                    //context.write(new Text(key), new Text(unigram));                   
+                    year.set(strdecade);
+                    unitimes.set(unigram+"@"+times);
+                    //System.out.println(unigram+"/"+times);
+                    context.write(new Text(year), new Text(unitimes)); 
+                }                    
             }                        
         }
     }
-
+    
     public static class MaxTimesUnigramIIReducer extends Reducer<Text, Text, Text, Text>
     {      
         private Text unigram = new Text();
@@ -82,15 +91,15 @@ public class MaxTimesUnigramPartII
     {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "maxunigramPartII");
-        job.setJarByClass(MaxTimesUnigramAPartII.class);
-
-        job.setMapperClass(MaxTimesUnigramIIMapper.class);        
-        job.setReducerClass(MaxTimesUnigramIIReducer.class);
-        
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Text.class);
-
+        job.setJarByClass(MaxTimesUnigramPartII.class);        
+        job.setMapperClass(MaxTimesUnigramIIMapper.class);
+        //job.setCombinerClass(MaxTimeUnigramIICombiner.class);        
+        job.setReducerClass(MaxTimesUnigramIIReducer.class);        
         job.setInputFormatClass(SequenceFileAsTextInputFormat.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Text.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);        
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));              
         System.exit(job.waitForCompletion(true) ? 0 : 1);
