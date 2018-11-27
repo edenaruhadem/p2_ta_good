@@ -41,8 +41,9 @@ public class MaxTimesUnigramPartII
                 Integer lastnumy = Integer.parseInt(stryear.substring(stryear.length()-1));                
                 Integer decade = y - lastnumy;
                 String strdecade = Integer.toString(decade);
+                Integer lengthUnigram = unigram.length();
                 Matcher mat = pat.matcher(unigram);
-                if(mat.matches())
+                if(mat.matches() && lengthUnigram == 1)
                 {
                     //unitimes.set(unigram+"@"+times);           
                     //context.write(new Text(key), new Text(unigram));                   
