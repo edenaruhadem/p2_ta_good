@@ -99,7 +99,7 @@ public class MaxTimesUnigramPartII
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);        
         FileInputFormat.addInputPath(job, new Path("s3a://datasets.elasticmapreduce/ngrams/books/20090715/spa-all/1gram/data"));
-        FileOutputFormat.setOutputPath(job, new Path("s3a://mostcommonunigramsperdecadedrcta/results"));              
+        FileOutputFormat.setOutputPath(job, new Path("s3a://namebucket/results"));              
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     } 
 
