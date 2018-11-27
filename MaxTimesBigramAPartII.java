@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 import java.util.Map;
 import java.util.Set;
 import java.io.*;
-
+import java.util.Iterator;
 import java.util.Collections;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -30,7 +30,7 @@ public class MaxTimesBigramAPartII
 	
 	    public void setup(Context context) throws IOException
 	    {
-            Path pt=new Path("/outputs/part-r-00000");//Location of file in HDFS
+            Path pt=new Path("/output11/part-r-00000");//Location of file in HDFS
             FileSystem fs = FileSystem.get(new Configuration());
             BufferedReader br=new BufferedReader(new InputStreamReader(fs.open(pt)));
             String line;
@@ -44,21 +44,20 @@ public class MaxTimesBigramAPartII
 	        {
                 //System.out.println(line);
                 line=br.readLine();
-	            //System.out.println(line);
+	        //System.out.println(line);
 	            if(line!=null)
 	            {
-            	    parts = line.split("\t");
-            	    dec = parts[0].trim();
-            	    unigram = parts[1].trim();
-            	    mapUnigram.put(dec,unigram);
+                    parts = line.split("\t");
+                    dec = parts[0].trim();
+                    unigram = parts[1].trim();
+                    mapUnigram.put(dec,unigram);
 	            }
             }while(line!=null);
 	        br.close();
         }
 
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException
-	    {
-            //System.out.println(value.toString());      
+	    {                   
             String [] partsLine = value.toString().trim().split("\t");
             String bigram = partsLine[0].trim();       
             String stryear = partsLine[1].trim();
@@ -76,18 +75,18 @@ public class MaxTimesBigramAPartII
                 Map.Entry<String,String> unigramEntry = getUnigramEntry(mapUnigram, strdecade);
                 //System.out.println(unigramEntry.getValue()+"/"+unigramEntry.getKey());
 	            String unigram = unigramEntry.getValue();
-	            String [] splitBigram = bigram.split(" ");
+	            String [] splitBigram = bigram.split("\\ ");
 	            Integer lengthUnigram = unigram.length();
+	            //System.out.println(Integer.toString(lengthUnigram));
 	            if(lengthUnigram > 1)
 	            {
 		            String twoLetters = unigram.substring(0,2);		
             	    String uni = splitBigram[0].trim();
 		            if(twoLetters.equals(uni.substring(0,2)))
-		            {
-			            String wordBigram = splitBigram[1].trim();
+		            {			
               		    //System.out.println(oneuni+"biiiiigram: "+uni+" "+wordBigram);
               		    year.set(strdecade);
-             		    bitimes.set(wordBigram+"@"+times);
+             		    bitimes.set(bigram+"@"+times);			
               		    context.write(new Text(year), new Text(bitimes));			
 		            }
 	            }
@@ -96,11 +95,9 @@ public class MaxTimesBigramAPartII
 		            //System.out.println(oneuni+"biiiiiiigrammmm"+bigram);            	
             	    String uni = splitBigram[0].trim();
             	    if(uni.equals(unigram))
-            	    {
-              		    String wordBigram = splitBigram[1].trim();
-              		    //System.out.println(oneuni+"biiiiigram: "+uni+" "+wordBigram);
-              		    year.set(strdecade);
-              		    bitimes.set(wordBigram+"@"+times);
+            	    {              		
+              		    year.set(strdecade);              		
+			            bitimes.set(bigram+"@"+times);
               		    context.write(new Text(year), new Text(bitimes));
             	    }		
 	            }             
@@ -109,35 +106,43 @@ public class MaxTimesBigramAPartII
     }
 
     public static class MaxTimesBigramAReducer extends Reducer<Text, Text, Text, Text>
-    {
-       
+    {       
         private Text bigram = new Text();
-        HashMap<String, Integer> map =  new HashMap<String, Integer>();       
+        HashMap<String, Integer> map =  new HashMap<String, Integer>();	       
         public void reduce(Text key, Iterable<Text> values, Context context)throws IOException, InterruptedException 
 	    {
             Integer maxValue = 0;           
             for (Text val : values)
             {
 		        //System.out.println(val.toString());
-                String[] parts = val.toString().trim().split("@");
-                String wordbi = parts[0].trim();
+                String[] parts = val.toString().trim().split("@");		
+                String wordbi = parts[0].trim();		
         	    String t = parts[1].trim();
 		        //System.out.println(wordbi);
 		        if((t.indexOf(".")==-1) && (t.indexOf("_")==-1) && (!t.equals("")) && (!t.equals(null)))
 		        {       
-                    Integer time = Integer.parseInt(t);
-		            //System.out.println("word: "+bi+" time: "+t);        
-                    map.put(wordbi, time);
+               	    Integer time = Integer.parseInt(t);
+		            //System.out.println("word: "+bi+" time: "+t);
+		            if(wordbi.indexOf("_DET_")==-1 && wordbi.indexOf("_NOUN_")==-1 && wordbi.indexOf("_VERB_")==-1)
+		            {
+			            map.put(wordbi, time);
+		            }                 
 		        }                               
-            }
+            }//for
             Map.Entry<String,Integer> maxEntry =  getMaxEntry(map);
             String bi = maxEntry.getKey();
+	        if(bi.indexOf("_")!=-1)
+            {
+		        String [] partsbi = bi.split("_");
+	            bi = partsbi[0].trim();		
+	        }
 	        //System.out.println(bi);                  
             bigram.set(bi);
             map.clear();
             context.write(new Text(key), new Text(bigram));           
         }
     }
+
     public static void main(String[] args) throws Exception 
     {
         Configuration conf = new Configuration();
@@ -171,7 +176,7 @@ public class MaxTimesBigramAPartII
     {      
         Entry<String, String> unigramEntry = null;         
         for(Entry<String, String> entry : mapUnigram.entrySet()) 
-	    {   
+	    {
             String key = entry.getKey();
             if(decade.equals(key)) 
 	        {

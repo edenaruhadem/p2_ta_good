@@ -48,13 +48,12 @@ public class MaxTimesUnigramPartII
                     //context.write(new Text(key), new Text(unigram));                   
                     year.set(strdecade);
                     unitimes.set(unigram+"@"+times);
-                    //System.out.println(unigram+"/"+times);
+                   //System.out.println(unigram+"/"+times);
                     context.write(new Text(year), new Text(unitimes)); 
                 }                    
             }                        
         }
     }
-    
     public static class MaxTimesUnigramIIReducer extends Reducer<Text, Text, Text, Text>
     {      
         private Text unigram = new Text();
@@ -92,16 +91,15 @@ public class MaxTimesUnigramPartII
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "maxunigramPartII");
         job.setJarByClass(MaxTimesUnigramPartII.class);        
-        job.setMapperClass(MaxTimesUnigramIIMapper.class);
-        //job.setCombinerClass(MaxTimeUnigramIICombiner.class);        
+        job.setMapperClass(MaxTimesUnigramIIMapper.class);                
         job.setReducerClass(MaxTimesUnigramIIReducer.class);        
         job.setInputFormatClass(SequenceFileAsTextInputFormat.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Text.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);        
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));              
+        FileInputFormat.addInputPath(job, new Path("s3a://datasets.elasticmapreduce/ngrams/books/20090715/spa-all/1gram/data"));
+        FileOutputFormat.setOutputPath(job, new Path("s3a://mostcommonunigramsperdecadedrcta/results"));              
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     } 
 

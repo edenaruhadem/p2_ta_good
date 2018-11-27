@@ -22,33 +22,31 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class MaxTimesBigramA2jobs
 {
-
     public static class MaxTimesBigramAMapperjob1 extends Mapper<Object, Text, Text, Text>
     {
         private Text year = new Text();      
         private Text unitimes = new Text();
-
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException
-	{
-    	  //System.out.println(value.toString());                  
-          String [] partsLine = value.toString().trim().split("\t");
-          String unigram = partsLine[0].trim();      
-          String stryear = partsLine[1].trim();
-          String times = partsLine[2].trim();    
-          Integer y = Integer.parseInt(stryear);
-          if(y>=1800)
-          {
-            Integer lastnumy = Integer.parseInt(stryear.substring(stryear.length()-1));
-	        //Integer lasttwonumy = Integer.parseInt(stryear.substring(2,4));
-            //Integer decade = y + (10-lastnumy);
-            Integer decade = y - lastnumy;
-	        //Integer decade = y - lasttwonumy;	
-            String strdecade = Integer.toString(decade);  
-            year.set(strdecade);
-            unitimes.set(unigram+"@"+times);
-            //System.out.println(unigram+"/"+times);
-            context.write(new Text(year), new Text(unitimes));      
-          }                        
+	    {
+    	    //System.out.println(value.toString());                  
+            String [] partsLine = value.toString().trim().split("\t");
+            String unigram = partsLine[0].trim();      
+            String stryear = partsLine[1].trim();
+            String times = partsLine[2].trim();    
+            Integer y = Integer.parseInt(stryear);
+            if(y>=1800)
+            {
+                Integer lastnumy = Integer.parseInt(stryear.substring(stryear.length()-1));
+	            //Integer lasttwonumy = Integer.parseInt(stryear.substring(2,4));
+                //Integer decade = y + (10-lastnumy);
+                Integer decade = y - lastnumy;
+	            //Integer decade = y - lasttwonumy;	
+                String strdecade = Integer.toString(decade);  
+                year.set(strdecade);
+                unitimes.set(unigram+"@"+times);
+                //System.out.println(unigram+"/"+times);
+                context.write(new Text(year), new Text(unitimes));      
+            }                        
         }
     }
     public static class MaxTimesBigramAReducerjob1 extends Reducer<Text, Text, Text, Text>
@@ -146,7 +144,7 @@ public class MaxTimesBigramA2jobs
 			            String wordBigram = splitBigram[1].trim();
               		    //System.out.println(oneuni+"biiiiigram: "+uni+" "+wordBigram);
               		    year.set(strdecade);
-             		    bitimes.set(wordBigram+"@"+times);
+             		    bitimes.set(bigram+"@"+times);
               		    context.write(new Text(year), new Text(bitimes));			
 		            }
 	            }
@@ -156,10 +154,10 @@ public class MaxTimesBigramA2jobs
             	    String uni = splitBigram[0].trim();
             	    if(uni.equals(unigram))
             	    {
-              		    String wordBigram = splitBigram[1].trim();
+              	        String wordBigram = splitBigram[1].trim();
               		    //System.out.println(oneuni+"biiiiigram: "+uni+" "+wordBigram);
-              		    year.set(strdecade);
-              	    	bitimes.set(wordBigram+"@"+times);
+              	    	year.set(strdecade);
+              		    bitimes.set(bigram+"@"+times);
               		    context.write(new Text(year), new Text(bitimes));
             	    }		
 	            }                             
@@ -185,18 +183,28 @@ public class MaxTimesBigramA2jobs
 		        //if((t.indexOf(".")==-1) && (!t.equals(null)))
 		        {      
                     Integer time = Integer.parseInt(t);
+		            if(wordbi.indexOf("_DET_")==-1 && wordbi.indexOf("_NOUN_")==-1 && wordbi.indexOf("_VERB_")==-1)
+		            {
+			            map.put(wordbi, time);
+		            }
                     //System.out.println("word: "+bi+" time: "+t);       
-                    map.put(wordbi, time);
+                    //map.put(wordbi, time);
                 }                              
             }
             Map.Entry<String,Integer> maxEntry =  getMaxEntry(map);
             String bi = maxEntry.getKey();
-            //System.out.println(bi);                 
+            //System.out.println(bi); 
+	        if(bi.indexOf("_")!=-1)
+            {
+		        String [] partsbi = bi.split("_");
+	            bi = partsbi[0].trim();		
+	        }                
             bigram.set(bi);
             map.clear();
             context.write(new Text(key), new Text(bigram));          
         }
     }
+
     public static void main(String[] args) throws Exception 
     {
         Configuration conf = new Configuration();
@@ -221,7 +229,8 @@ public class MaxTimesBigramA2jobs
         FileInputFormat.addInputPath(job, new Path(args[1]));
         FileOutputFormat.setOutputPath(job, new Path(args[2]));      
     	System.exit(job.waitForCompletion(true) ? 0 : 1);
-    } 
+    }
+ 
 
     public static Entry<String, Integer> getMaxEntry(HashMap<String, Integer> map)
     {     
